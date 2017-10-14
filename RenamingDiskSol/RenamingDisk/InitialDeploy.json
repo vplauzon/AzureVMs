@@ -44,7 +44,6 @@
     "NSG Name": "MyNsg",
     "VM Name": "Demo-VM",
     "Availability Set Name": "MyAvailSet",
-    "Private LB Name": "PrivateLB",
     "VNET Name": "Demo-VNet",
     "Subnet Name": "MainSubnet"
   },

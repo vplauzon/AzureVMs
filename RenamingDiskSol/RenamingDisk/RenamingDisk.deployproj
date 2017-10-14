@@ -27,6 +27,7 @@
   <ItemGroup>
     <Content Include="InitialDeploy.parameters.json" />
     <Content Include="RecreateVMDeploy.json" />
+    <Content Include="RemoveVMs.ps1" />
     <Content Include="RemoveSnapshots.ps1" />
     <Content Include="CreateSnapshots.ps1" />
     <Content Include="CreateSnapshots.json" />

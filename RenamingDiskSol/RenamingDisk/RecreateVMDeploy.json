@@ -2,14 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "VM Admin User Name": {
-      "defaultValue": "myadmin",
-      "type": "string"
-    },
-    "VM Admin Password": {
-      "defaultValue": "Skf725#$vncvXZ",
-      "type": "securestring"
-    },
     "VM Size": {
       "defaultValue": "Standard_DS4_v2",
       "type": "string",
@@ -23,290 +15,50 @@
       "metadata": {
         "description": "SKU of the VM."
       }
-    },
-    "Public Domain Label": {
-      "type": "string"
-    },
-    "Fault Domain Count": {
-      "defaultValue": 3,
-      "type": "int",
-      "metadata": {
-        "description": "# of fault domains ; some regions don't have 3"
-      }
     }
   },
   "variables": {
-    "IP Range": "10.0.1.0/24",
-    "Public IP Name": "MyPublicIP",
-    "Public LB Name": "PublicLB",
-    "Address Pool Name": "MyPool",
     "NIC Name": "MyNic",
-    "NSG Name": "MyNsg",
-    "VM Name": "Demo-VM",
     "Availability Set Name": "MyAvailSet",
-    "Private LB Name": "PrivateLB",
-    "VNET Name": "Demo-VNet",
-    "Subnet Name": "MainSubnet"
+    "VM Name": "Demo-VM",
+    "disks": [
+      {
+        "oldName": "Demo-VM-OS",
+        "newName": "Clone-Demo-OS"
+      },
+      {
+        "oldName": "Demo-VM-data2",
+        "newName": "Clone-Demo-data2"
+      },
+      {
+        "oldName": "Demo-VM-data3",
+        "newName": "Clone-Demo-data3"
+      }
+    ]
   },
   "resources": [
     {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[variables('Public IP Name')]",
-      "apiVersion": "2015-06-15",
+      "comments": "Copy existing disks in order to change their names",
+      "apiVersion": "2017-03-30",
+      "copy": {
+        "name": "snapshot-loop",
+        "count": "[length(variables('disks'))]"
+      },
+      "type": "Microsoft.Compute/disks",
+      "name": "[variables('disks')[copyIndex()].newName]",
       "location": "[resourceGroup().location]",
       "tags": {
-        "displayName": "Public IP"
+        "displayName": "Disk Copies"
+      },
+      "sku": {
+        "name": "Premium_LRS"
       },
       "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "idleTimeoutInMinutes": 4,
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('Public Domain Label')]"
+        "creationData": {
+          "createOption": "copy",
+          "sourceUri": "[resourceId('Microsoft.Compute/disks', variables('disks')[copyIndex()].oldName)]"
         }
       }
-    },
-    {
-      "apiVersion": "2016-03-30",
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('VNet Name')]",
-      "tags": {
-        "displayName": "VNET"
-      },
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.0.0.0/16"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('Subnet Name')]",
-            "properties": {
-              "addressPrefix": "[variables('IP Range')]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('NSG Name'))]"
-              }
-            }
-          }
-        ]
-      },
-      "resources": [],
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('NSG Name'))]"
-      ]
-    },
-    {
-      "type": "Microsoft.Network/loadBalancers",
-      "name": "[variables('Public LB Name')]",
-      "apiVersion": "2015-06-15",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "Load Balancer"
-      },
-      "properties": {
-        "frontendIPConfigurations": [
-          {
-            "name": "LoadBalancerFrontEnd",
-            "comments": "Front end of LB:  the IP address",
-            "properties": {
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses/', variables('Public IP Name'))]"
-              }
-            }
-          }
-        ],
-        "backendAddressPools": [
-          {
-            "name": "[variables('Address Pool Name')]"
-          }
-        ],
-        "loadBalancingRules": [
-          {
-            "name": "Http",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('Public LB Name')), '/frontendIPConfigurations/LoadBalancerFrontEnd')]"
-              },
-              "frontendPort": 80,
-              "backendPort": 80,
-              "enableFloatingIP": false,
-              "idleTimeoutInMinutes": 4,
-              "protocol": "Tcp",
-              "loadDistribution": "Default",
-              "backendAddressPool": {
-                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('Public LB Name')), '/backendAddressPools/', variables('Address Pool Name'))]"
-              },
-              "probe": {
-                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('Public LB Name')), '/probes/TCP-Probe')]"
-              }
-            }
-          }
-        ],
-        "probes": [
-          {
-            "name": "TCP-Probe",
-            "properties": {
-              "protocol": "Tcp",
-              "port": 80,
-              "intervalInSeconds": 5,
-              "numberOfProbes": 2
-            }
-          }
-        ],
-        "inboundNatRules": [
-          {
-            "name": "SSH-2-Primary",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('Public LB Name')), '/frontendIPConfigurations/LoadBalancerFrontEnd')]",
-              },
-              "frontendPort": 22,
-              "backendPort": 22,
-              "protocol": "Tcp"
-            }
-          }
-        ],
-        "outboundNatRules": [],
-        "inboundNatPools": []
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses', variables('Public IP Name'))]"
-      ]
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/networkSecurityGroups",
-      "name": "[variables('NSG Name')]",
-      "tags": {
-        "displayName": "NSG"
-      },
-      "location": "[resourceGroup().location]",
-      "tags": {},
-      "properties": {
-        "securityRules": [
-          {
-            "name": "Allow-SSH-From-Everywhere",
-            "properties": {
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "22",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 100,
-              "direction": "Inbound"
-            }
-          },
-          {
-            "name": "Allow-Health-Monitoring",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "*",
-              "sourceAddressPrefix": "AzureLoadBalancer",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 200,
-              "direction": "Inbound"
-            }
-          },
-          {
-            "name": "Disallow-everything-else-Inbound",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "*",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Deny",
-              "priority": 300,
-              "direction": "Inbound"
-            }
-          },
-          {
-            "name": "Allow-to-VNet",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "*",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "VirtualNetwork",
-              "access": "Allow",
-              "priority": 100,
-              "direction": "Outbound"
-            }
-          },
-          {
-            "name": "Allow-to-8443",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "8443",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "Internet",
-              "access": "Allow",
-              "priority": 200,
-              "direction": "Outbound"
-            }
-          },
-          {
-            "name": "Disallow-everything-else-Outbound",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "*",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Deny",
-              "priority": 300,
-              "direction": "Outbound"
-            }
-          }
-        ],
-        "subnets": []
-      }
-    },
-    {
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "[variables('NIC Name')]",
-      "tags": {
-        "displayName": "NIC"
-      },
-      "apiVersion": "2016-03-30",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('VNet Name')), '/subnets/', variables('Subnet Name'))]"
-              },
-              "loadBalancerBackendAddressPools": [
-                {
-                  "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('Public LB Name')), '/backendAddressPools/', variables('Address Pool Name'))]"
-                }
-              ],
-              "loadBalancerInboundNatRules": [
-                {
-                  "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('Public LB Name')), '/inboundNatRules/SSH-2-Primary')]"
-                }
-              ]
-            }
-          }
-        ],
-        "dnsSettings": {
-          "dnsServers": []
-        },
-        "enableIPForwarding": false
-      },
-      "resources": [],
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('VNet Name'))]",
-        "[resourceId('Microsoft.Network/loadBalancers', variables('Public LB Name'))]"
-      ]
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
@@ -324,44 +76,15 @@
           "vmSize": "[parameters('VM Size')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "OpenLogic",
-            "offer": "CentOS",
-            "sku": "7.3",
-            "version": "latest"
-          },
           "osDisk": {
-            "name": "[concat(variables('VM Name'), '-OS')]",
-            "createOption": "FromImage",
-            "caching": "ReadWrite"
-          },
-          "dataDisks": [
-            {
-              "lun": 2,
-              "name": "[concat(variables('VM Name'), '-data2')]",
-              "createOption": "Empty",
-              "diskSizeGB": "32",
-              "managedDisk": {
-                "storageAccountType": "Premium_LRS"
-              },
-              "caching": "Readonly"
-            },
-            {
-              "lun": 3,
-              "name": "[concat(variables('VM Name'), '-data3')]",
-              "createOption": "Empty",
-              "diskSizeGB": "32",
-              "managedDisk": {
-                "storageAccountType": "Premium_LRS"
-              },
-              "caching": "Readonly"
+            "createOption": "attach",
+            "osType": "Linux",
+            "caching": "ReadWrite",
+            "managedDisk": {
+              "id": "[resourceId('Microsoft.Compute/disks', 'Clone-Demo-OS')]"
             }
-          ]
-        },
-        "osProfile": {
-          "computerName": "[variables('VM Name')]",
-          "adminUsername": "[parameters('VM Admin User Name')]",
-          "adminPassword": "[parameters('VM Admin Password')]"
+          },
+          "dataDisks": []
         },
         "networkProfile": {
           "networkInterfaces": [
@@ -372,24 +95,6 @@
         }
       },
       "resources": [],
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces', variables('NIC Name'))]",
-        "[resourceId('Microsoft.Compute/availabilitySets', variables('Availability Set Name'))]"
-      ]
-    },
-    {
-      "name": "[variables('Availability Set Name')]",
-      "type": "Microsoft.Compute/availabilitySets",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2016-04-30-preview",
-      "tags": {
-        "displayName": "Availability Set"
-      },
-      "properties": {
-        "platformUpdateDomainCount": 5,
-        "platformFaultDomainCount": "[parameters('Fault Domain Count')]",
-        "managed": true
-      },
       "dependsOn": []
     }
   ]
