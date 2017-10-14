@@ -84,7 +84,24 @@
               "id": "[resourceId('Microsoft.Compute/disks', 'Clone-Demo-OS')]"
             }
           },
-          "dataDisks": []
+          "dataDisks": [
+            {
+              "lun": 2,
+              "createOption": "attach",
+              "managedDisk": {
+                "id": "[resourceId('Microsoft.Compute/disks', 'Clone-Demo-data2')]"
+              },
+              "caching": "Readonly"
+            },
+            {
+              "lun": 3,
+              "createOption": "attach",
+              "managedDisk": {
+                "id": "[resourceId('Microsoft.Compute/disks', 'Clone-Demo-data3')]"
+              },
+              "caching": "Readonly"
+            }
+          ]
         },
         "networkProfile": {
           "networkInterfaces": [
