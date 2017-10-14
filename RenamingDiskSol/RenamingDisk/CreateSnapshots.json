@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {
+    "disks": [
+      "Demo-VM-OS",
+      "Demo-VM-data2",
+      "Demo-VM-data3"
+    ]
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/snapshots",
+      "sku": {
+        "name": "Premium_LRS",
+        "tier": "Premium"
+      },
+      "copy": {
+        "name": "snapshot-loop",
+        "count": "[length(variables('disks'))]"
+      },
+      "name": "[concat(variables('disks')[copyIndex()], '-snapshot')]",
+      "location": "[resourceGroup().location]",
+      "scale": null,
+      "properties": {
+        "creationData": {
+          "createOption": "Copy",
+          "sourceResourceId": "[resourceId('Microsoft.Compute/disks', variables('disks')[copyIndex()])]"
+        }
+      },
+      "dependsOn": []
+    }
+  ]
+}

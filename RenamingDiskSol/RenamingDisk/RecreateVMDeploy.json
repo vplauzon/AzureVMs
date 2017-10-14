@@ -340,7 +340,7 @@
               "lun": 2,
               "name": "[concat(variables('VM Name'), '-data2')]",
               "createOption": "Empty",
-              "diskSizeGB": "64",
+              "diskSizeGB": "32",
               "managedDisk": {
                 "storageAccountType": "Premium_LRS"
               },
@@ -350,7 +350,7 @@
               "lun": 3,
               "name": "[concat(variables('VM Name'), '-data3')]",
               "createOption": "Empty",
-              "diskSizeGB": "128",
+              "diskSizeGB": "32",
               "managedDisk": {
                 "storageAccountType": "Premium_LRS"
               },

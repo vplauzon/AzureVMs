@@ -25,8 +25,14 @@
   <Import Condition=" Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Deployment\1.1\DeploymentProject.targets') " Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Deployment\1.1\DeploymentProject.targets" />
   <!-- vertag<:>end -->
   <ItemGroup>
-    <Content Include="InitialDeploy.json" />
     <Content Include="InitialDeploy.parameters.json" />
+    <Content Include="RecreateVMDeploy.json" />
+    <Content Include="RemoveSnapshots.ps1" />
+    <Content Include="CreateSnapshots.ps1" />
+    <Content Include="CreateSnapshots.json" />
+    <Content Include="CreateSnapshots.parameters.json" />
+    <Content Include="InitialDeploy.json" />
+    <Content Include="RecreateVMDeploy.parameters.json" />
     <None Include="Deployment.targets">
       <Visible>False</Visible>
     </None>
