@@ -28,7 +28,6 @@
     <Content Include="InitialDeploy.parameters.json" />
     <Content Include="RecreateVMDeploy.json" />
     <Content Include="RemoveVMs.ps1" />
-    <Content Include="RemoveSnapshots.ps1" />
     <Content Include="InitialDeploy.json" />
     <Content Include="RecreateVMDeploy.parameters.json" />
     <None Include="Deployment.targets">
