@@ -27,6 +27,7 @@
   <ItemGroup>
     <Content Include="InitialDeploy.parameters.json" />
     <Content Include="RecreateVMDeploy.json" />
+    <Content Include="RemoveOldDisks.ps1" />
     <Content Include="RemoveVMs.ps1" />
     <Content Include="InitialDeploy.json" />
     <Content Include="RecreateVMDeploy.parameters.json" />

@@ -48,7 +48,8 @@
       "name": "[variables('disks')[copyIndex()].newName]",
       "location": "[resourceGroup().location]",
       "tags": {
-        "displayName": "Disk Copies"
+        "displayName": "Disk Copies",
+        "renamedDisk": "true"
       },
       "sku": {
         "name": "Premium_LRS"
