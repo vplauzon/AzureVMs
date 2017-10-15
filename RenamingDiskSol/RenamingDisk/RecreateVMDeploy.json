@@ -113,7 +113,11 @@
         }
       },
       "resources": [],
-      "dependsOn": []
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/disks', 'Clone-Demo-OS')]",
+        "[resourceId('Microsoft.Compute/disks', 'Clone-Demo-data2')]",
+        "[resourceId('Microsoft.Compute/disks', 'Clone-Demo-data3')]"
+      ]
     }
   ]
 }
