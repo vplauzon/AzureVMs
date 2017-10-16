@@ -1,2 +1,4 @@
 $rgName = ‘ren’ # or the Resource Group name you used
-Get-AzureRmDisk -ResourceGroupName $rgName | where {$_.Tags["renamedDisk"] -ne "true"} | Remove-AzureRmDisk -Force
+$oldDisks = 'Demo-VM-OS', 'Demo-VM-data2', 'Demo-VM-data3'
+  
+$oldDisks | foreach {Remove-AzureRmDisk -ResourceGroupName $rgName -Force -DiskName $_}
