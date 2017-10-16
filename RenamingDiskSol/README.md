@@ -8,7 +8,7 @@ The details of the approach are in the [following blog post](http://vincentlauzo
 
 The initial deployment of the VM, its disks, its NIC, VNET, etc.  is here:
 
-<a href="https://azuredeploy.net/?repository=https://github.com/vplauzon/AzureVMs/blob/master/RenamingDiskSol/RenamingDisk/InitialDeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https://raw.githubusercontent.com/vplauzon/AzureVMs/master/RenamingDiskSol/RenamingDisk/InitialDeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 <a href="http://armviz.io/#/?load=https://raw.githubusercontent.com/vplauzon/AzureVMs/master/RenamingDiskSol/RenamingDisk/InitialDeploy.json" target="_blank">
