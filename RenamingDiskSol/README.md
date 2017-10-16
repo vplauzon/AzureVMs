@@ -14,3 +14,12 @@ The initial deployment of the VM, its disks, its NIC, VNET, etc.  is here:
 <a href="http://armviz.io/#/?load=https://raw.githubusercontent.com/vplauzon/AzureVMs/master/RenamingDiskSol/RenamingDisk/InitialDeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
+
+The deployment of disk copy & VM re-creation is here:
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https:%2F%2Fraw.githubusercontent.com%2Fvplauzon%2FAzureVMs%2Fmaster%2FRenamingDiskSol%2FRenamingDisk%2FInitialDeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+<a href="http://armviz.io/#/?load=https://raw.githubusercontent.com/vplauzon/AzureVMs/master/RenamingDiskSol/RenamingDisk/InitialDeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
