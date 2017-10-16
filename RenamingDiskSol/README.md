@@ -15,6 +15,8 @@ The initial deployment of the VM, its disks, its NIC, VNET, etc.  is here:
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
+The script to [delete the VM is here](https://github.com/vplauzon/AzureVMs/blob/master/RenamingDiskSol/RenamingDisk/RemoveVMs.ps1).
+
 The deployment of disk copy & VM re-creation is here:
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https:%2F%2Fraw.githubusercontent.com%2Fvplauzon%2FAzureVMs%2Fmaster%2FRenamingDiskSol%2FRenamingDisk%2FRecreateVMDeploy.json" target="_blank">
@@ -23,3 +25,6 @@ The deployment of disk copy & VM re-creation is here:
 <a href="http://armviz.io/#/?load=https://raw.githubusercontent.com/vplauzon/AzureVMs/master/RenamingDiskSol/RenamingDisk/RecreateVMDeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
+
+The script to [delete the old disks is here](https://github.com/vplauzon/AzureVMs/blob/master/RenamingDiskSol/RenamingDisk/RemoveOldDisks.ps1).
+
