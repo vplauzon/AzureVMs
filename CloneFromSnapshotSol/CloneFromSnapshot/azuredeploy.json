@@ -1,0 +1,265 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "Instance Count": {
+      "defaultValue": 2,
+      "type": "int"
+    },
+    "VM Admin User Name": {
+      "defaultValue": "myadmin",
+      "type": "string"
+    },
+    "VM Admin Password": {
+      "defaultValue": null,
+      "type": "securestring"
+    },
+    "VM Size": {
+      "defaultValue": "Standard_E8s_v3",
+      "type": "string",
+      "allowedValues": [
+        "Standard_E2s_v3",
+        "Standard_E4s_v3",
+        "Standard_E8s_v3",
+        "Standard_E16s_v3"
+      ],
+      "metadata": {
+        "description": "SKU of the VM."
+      }
+    },
+    "Public Domain Label": {
+      "type": "string"
+    },
+    "OS Snapshot ID": {
+      "type": "string"
+    },
+    "Data Snapshot ID": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "VNET IP Range": "10.0.16.0/24",
+    "Public IP Name": "DvPublicIP",
+    "NIC Name": "DvNic",
+    "VM Name": "DvVM",
+    "OS Disk Name": "DvOsDisk",
+    "Data Disk Name": "DvDataDisk",
+    "VNET Name": "DvVNet",
+    "NSG Name": "DvNsg"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[concat(variables('Public IP Name'), '-', copyIndex())]",
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "copy": {
+        "name": "ip-copy",
+        "count": "[parameters('Instance Count')]"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "idleTimeoutInMinutes": 4,
+        "dnsSettings": {
+          "domainNameLabel": "[concat(parameters('Public Domain Label'), '-', copyIndex())]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[concat(variables('NSG Name'), '-', copyIndex())]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "copy": {
+        "name": "nsg-copy",
+        "count": "[parameters('Instance Count')]"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-everything",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          }
+        ],
+        "subnets": []
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[concat(variables('VNET Name'), '-', copyIndex())]",
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "copy": {
+        "name": "vnet-copy",
+        "count": "[parameters('Instance Count')]"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('VNET IP Range')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "front",
+            "properties": {
+              "addressPrefix": "[variables('VNET IP Range')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('NSG Name'), '-', copyIndex()))]"
+              }
+            }
+          }
+        ]
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('NSG Name'), '-', copyIndex()))]"
+      ]
+    },
+    {
+      "name": "[concat(variables('OS Disk Name'), '-', copyIndex())]",
+      "type": "Microsoft.Compute/disks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2017-03-30",
+      "tags": {},
+      "copy": {
+        "name": "os-disk-copy",
+        "count": "[parameters('Instance Count')]"
+      },
+      "sku": {
+        "name": "Premium_LRS"
+      },
+      "properties": {
+        "creationData": {
+          "createOption": "Copy",
+          "sourceResourceId": "[parameters('OS Snapshot ID')]"
+        },
+        "diskSizeGB": 63
+      }
+    },
+    {
+      "name": "[concat(variables('Data Disk Name'), '-', copyIndex())]",
+      "type": "Microsoft.Compute/disks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2017-03-30",
+      "tags": {},
+      "copy": {
+        "name": "data-disk-copy",
+        "count": "[parameters('Instance Count')]"
+      },
+      "sku": {
+        "name": "Premium_LRS"
+      },
+      "properties": {
+        "creationData": {
+          "createOption": "Copy",
+          "sourceResourceId": "[parameters('Data Snapshot ID')]"
+        },
+        "diskSizeGB": 63
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('NIC Name'), '-', copyIndex())]",
+      "tags": {},
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "nic-copy",
+        "count": "[parameters('Instance Count')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('Public IP Name'), '-', copyIndex()))]"
+              },
+              "subnet": {
+                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', concat(variables('VNet Name'), '-', copyIndex())), '/subnets/front')]"
+              }
+            }
+          }
+        ],
+        "dnsSettings": {
+          "dnsServers": []
+        },
+        "enableIPForwarding": false
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', concat(variables('VNet Name'), '-', copyIndex()))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('Public IP Name'), '-', copyIndex()))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('VM Name'), '-', copyIndex())]",
+      "tags": {},
+      "apiVersion": "2017-12-01",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "vm-copy",
+        "count": "[parameters('Instance Count')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('VM Size')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "name": "[concat(variables('OS Disk Name'), '-', copyIndex())]",
+            "createOption": "Attach",
+            "managedDisk": {
+              "id": "[resourceId('Microsoft.Compute/disks', concat(variables('OS Disk Name'), '-', copyIndex()))]",
+              "storageAccountType": "Premium_LRS"
+            },
+            "osType": "Linux",
+            "caching": "ReadWrite"
+          },
+          "dataDisks": [
+            /*
+            {
+              "lun": 2,
+              "name": "[concat(variables('Data Disk Name'), '-', copyIndex())]",
+              "createOption": "Attach",
+              "managedDisk": {
+                "id": "[resourceId('Microsoft.Compute/disks', concat(variables('Data Disk Name'), '-', copyIndex()))]",
+                "storageAccountType": "Premium_LRS"
+              },
+              "caching": "ReadOnly"
+            }
+            */
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('NIC Name'), '-', copyIndex()))]"
+            }
+          ]
+        }
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('NIC Name'), '-', copyIndex()))]",
+        "[resourceId('Microsoft.Compute/disks', concat(variables('OS Disk Name'), '-', copyIndex()))]",
+        "[resourceId('Microsoft.Compute/disks', concat(variables('Data Disk Name'), '-', copyIndex()))]"
+      ]
+    }
+  ]
+}

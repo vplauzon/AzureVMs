@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "Hw", "Hw\Hw.deployproj", "{2E21615D-417B-49B0-855A-8C7573C41D96}"
+Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "CloneFromSnapshot", "CloneFromSnapshot\CloneFromSnapshot.deployproj", "{2E21615D-417B-49B0-855A-8C7573C41D96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
