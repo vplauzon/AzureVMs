@@ -9,4 +9,4 @@ We clone a VM from 2 snapshots, i.e. an OS and data disk snapshot.
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
-(Otherwise, deployment file is [here|https://github.com/vplauzon/AzureVMs/blob/master/CloneFromSnapshotSol/CloneFromSnapshot/azuredeploy.json]).
+(Otherwise, deployment file is [here](https://github.com/vplauzon/AzureVMs/blob/master/CloneFromSnapshotSol/CloneFromSnapshot/azuredeploy.json)).
