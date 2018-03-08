@@ -6,14 +6,6 @@
       "defaultValue": 2,
       "type": "int"
     },
-    "VM Admin User Name": {
-      "defaultValue": "myadmin",
-      "type": "string"
-    },
-    "VM Admin Password": {
-      "defaultValue": null,
-      "type": "securestring"
-    },
     "VM Size": {
       "defaultValue": "Standard_E8s_v3",
       "type": "string",
@@ -232,9 +224,8 @@
             "caching": "ReadWrite"
           },
           "dataDisks": [
-            /*
             {
-              "lun": 2,
+              "lun": 0,
               "name": "[concat(variables('Data Disk Name'), '-', copyIndex())]",
               "createOption": "Attach",
               "managedDisk": {
@@ -243,7 +234,6 @@
               },
               "caching": "ReadOnly"
             }
-            */
           ]
         },
         "networkProfile": {

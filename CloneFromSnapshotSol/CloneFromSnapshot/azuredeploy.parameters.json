@@ -2,21 +2,17 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "VM Admin Password": {
-      "value": "AEKJhsafdh35!@"
-    },
     "Public Domain Label": {
-      "value": "vpl-hw-3"
+      "value": "vpl-hw"
     },
     "Instance Count": {
-      "value": 1
+      "value": 10
     },
     "OS Snapshot ID": {
-      //"value": "/subscriptions/a9f15356-c7b1-4864-980e-e9bca8b790dd/resourceGroups/Master/providers/Microsoft.Compute/snapshots/OS-Snap"
-      "value": "/subscriptions/a9f15356-c7b1-4864-980e-e9bca8b790dd/resourceGroups/docker/providers/Microsoft.Compute/snapshots/docker-snap"
+      "value": "/subscriptions/a9f15356-c7b1-4864-980e-e9bca8b790dd/resourceGroups/master/providers/Microsoft.Compute/snapshots/os-snap"
     },
     "Data Snapshot ID": {
-      "value": "/subscriptions/a9f15356-c7b1-4864-980e-e9bca8b790dd/resourceGroups/Master/providers/Microsoft.Compute/snapshots/Data-Snap"
+      "value": "/subscriptions/a9f15356-c7b1-4864-980e-e9bca8b790dd/resourceGroups/master/providers/Microsoft.Compute/snapshots/data-snap"
     }
   }
 }
