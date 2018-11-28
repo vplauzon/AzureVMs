@@ -1,0 +1,206 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "VM Admin User Name": {
+      "type": "string"
+    },
+    "VM Admin Password": {
+      "type": "securestring"
+    },
+    "VM Size": {
+      "defaultValue": "Standard_DS14_v2",
+      "type": "string",
+      "allowedValues": [
+        "Standard_DS14_v2",
+        "Standard_DS15_v2"
+      ],
+      "metadata": {
+        "description": "SKU of the VM."
+      }
+    },
+    "Public Domain Label": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "data-disk-count": 20,
+    "VNET IP Range": "10.0.16.0/24",
+    "Public IP Name": "PublicIP",
+    "NIC Name": "Nic",
+    "VM Name": "Test-VM",
+    "OS Disk Name": "[concat(variables('VM Name'), '-OsDisk')]",
+    "VNET Name": "VNet",
+    "NSG Name": "Nsg",
+    "VM Image Reference": {
+      "publisher": "Canonical",
+      "offer": "UbuntuServer",
+      "sku": "18.04-LTS",
+      "version": "latest"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('Public IP Name')]",
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "idleTimeoutInMinutes": 4,
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('Public Domain Label')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[variables('NSG Name')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-ssh",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow-internet",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80-89",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          }
+        ],
+        "subnets": []
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('VNET Name')]",
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('VNET IP Range')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "front",
+            "properties": {
+              "addressPrefix": "[variables('VNET IP Range')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('NSG Name'))]"
+              }
+            }
+          }
+        ]
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('NSG Name'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('NIC Name')]",
+      "tags": {},
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('Public IP Name'))]"
+              },
+              "subnet": {
+                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('VNet Name')), '/subnets/front')]"
+              }
+            }
+          }
+        ],
+        "dnsSettings": {
+          "dnsServers": []
+        },
+        "enableIPForwarding": false
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('VNet Name'))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('Public IP Name'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('VM Name')]",
+      "apiVersion": "2018-10-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('NIC Name'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('VM Size')]"
+        },
+        "storageProfile": {
+          "imageReference": "[variables('VM Image Reference')]",
+          "osDisk": {
+            "name": "[variables('OS Disk Name')]",
+            "createOption": "FromImage",
+            "osType": "Linux",
+            "caching": "ReadWrite"
+          },
+          "copy": [
+            {
+              "name": "dataDisks",
+              "count": "[variables('data-disk-count')]",
+              "input": {
+                "diskSizeGB": 1024,
+                "lun": "[copyIndex('dataDisks')]",
+                "name":"[concat('data-', copyIndex('dataDisks'))]",
+                "createOption": "Empty"
+              }
+            }
+          ]
+        },
+        "osProfile": {
+          "computerName": "[variables('VM Name')]",
+          "adminUsername": "[parameters('VM Admin User Name')]",
+          "adminPassword": "[parameters('VM Admin Password')]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('NIC Name'))]"
+            }
+          ]
+        }
+      },
+      "resources": []
+    }
+  ]
+}
